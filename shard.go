@@ -117,6 +117,36 @@ func (s *cacheShard) getValidWrapEntry(key string, hashedKey uint64) ([]byte, er
 	return wrappedEntry, nil
 }
 
+func (s *cacheShard) add(key string, hashedKey uint64, entry []byte) error {
+	currentTimestamp := uint64(s.clock.Epoch())
+
+	s.lock.Lock()
+
+	if previousIndex := s.hashmap[hashedKey]; previousIndex != 0 {
+		if _, err := s.entries.Get(int(previousIndex)); err == nil {
+			return ErrEntryExist
+		}
+	}
+
+	if oldestEntry, err := s.entries.Peek(); err == nil {
+		s.onEvict(oldestEntry, currentTimestamp, s.removeOldestEntry)
+	}
+
+	w := wrapEntry(currentTimestamp, hashedKey, key, entry, &s.entryBuffer)
+
+	for {
+		if index, err := s.entries.Push(w); err == nil {
+			s.hashmap[hashedKey] = uint32(index)
+			s.lock.Unlock()
+			return nil
+		}
+		if s.removeOldestEntry(NoSpace) != nil {
+			s.lock.Unlock()
+			return fmt.Errorf("entry is bigger than max shard size")
+		}
+	}
+}
+
 func (s *cacheShard) set(key string, hashedKey uint64, entry []byte) error {
 	currentTimestamp := uint64(s.clock.Epoch())
 
