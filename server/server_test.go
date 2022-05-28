@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xuanghu/bigcache/v3"
+	"bigcache"
 )
 
 const (

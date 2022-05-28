@@ -1,3 +1,3 @@
-module github.com/xuanghu/bigcache/v3
+module bigcache
 
 go 1.16
