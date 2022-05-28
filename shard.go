@@ -124,6 +124,7 @@ func (s *cacheShard) add(key string, hashedKey uint64, entry []byte) error {
 
 	if previousIndex := s.hashmap[hashedKey]; previousIndex != 0 {
 		if _, err := s.entries.Get(int(previousIndex)); err == nil {
+			s.lock.Unlock()
 			return ErrEntryExist
 		}
 	}
