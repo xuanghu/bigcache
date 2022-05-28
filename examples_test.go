@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"bigcache"
+	"github.com/xuanghu/bigcache/v3"
 )
 
 func Example() {
